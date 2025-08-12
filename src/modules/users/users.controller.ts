@@ -1,5 +1,5 @@
 // users.controller.ts
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Param, Req, Post, UseGuards } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { UsersService } from './users.service'
 import { CreateUserDto } from './dto/create-user.dto'
@@ -11,7 +11,7 @@ import { UserRole } from 'src/common/enums/user-role.enum'
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiTags('Users')
-@Controller('users')
+@Controller('users') // 指定路由前缀
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

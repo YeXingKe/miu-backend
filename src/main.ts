@@ -6,7 +6,7 @@ import Redoc from 'redoc-express'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
-
+  app.setGlobalPrefix('api') // 设置全局api路径前缀
   // Swagger 配置
   const config = new DocumentBuilder()
     .setTitle('后台管理系统 API')

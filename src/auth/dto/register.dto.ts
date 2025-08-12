@@ -1,8 +1,9 @@
+// auth/dto/login.dto.ts
 import { ApiProperty } from '@nestjs/swagger'
-import { IsArray, IsEmail, IsEnum, IsOptional, IsPhoneNumber, IsString, MinLength } from 'class-validator'
+import { IsString, MinLength, IsOptional, IsEnum, IsEmail, isArray, IsArray, IsPhoneNumber } from 'class-validator'
 import { UserRole } from 'src/common/enums/user-role.enum'
 
-export class CreateUserDto {
+export class RegisterDto {
   @ApiProperty({
     example: 'example@foxmail.com',
     description: '邮箱',

@@ -1,6 +1,7 @@
 // auth/dto/login.dto.ts
 import { ApiProperty } from '@nestjs/swagger'
-import { IsString, MinLength, IsOptional } from 'class-validator'
+import { IsString, MinLength, IsOptional, IsEnum, IsEmail, isArray, IsArray } from 'class-validator'
+import { UserRole } from 'src/common/enums/user-role.enum'
 
 export class LoginDto {
   @ApiProperty({
@@ -24,12 +25,32 @@ export class LoginDto {
   smsCode?: string
 
   @ApiProperty({
-    example: 'testUser',
+    example: 'example@foxmail.com',
     description: '用户名',
     required: false
   })
   @IsString()
   @IsOptional()
-  @MinLength(6, { message: '短信验证码必须6位' })
-  userName?: string
+  @IsEmail()
+  email?: string
+
+  @ApiProperty({
+    example: 'admin',
+    description: '用户名',
+    required: false
+  })
+  @IsString()
+  @IsOptional()
+  @MinLength(5, { message: '用户名' })
+  userName: string
+
+  @ApiProperty({
+    example: 'admin',
+    description: '角色',
+    required: false
+  })
+  @IsArray()
+  @IsOptional()
+  @IsEnum(UserRole)
+  roles: string[]
 }

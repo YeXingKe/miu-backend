@@ -3,26 +3,36 @@ import { JwtService } from '@nestjs/jwt'
 import { InjectModel } from '@nestjs/mongoose'
 import * as bcrypt from 'bcrypt'
 import { Model } from 'mongoose'
-import { UserDocument } from 'src/modules/users/schemas/user.schema'
-import { User } from 'src/modules/users/users.entity'
+import { User, UserDocument } from 'src/modules/users/schemas/user.schema'
 import { UsersService } from 'src/modules/users/users.service'
 import { LoginDto } from './dto/login.dto'
+import { ConfigService } from '@nestjs/config'
+import { RegisterDto } from './dto/register.dto'
+import { UserRole } from 'src/common/enums/user-role.enum'
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-    // private usersService: UsersService,
-    private jwtService: JwtService
+    private usersService: UsersService,
+    private jwtService: JwtService,
+    private configService: ConfigService
   ) {}
 
-  async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.userModel.findOne({ email }).exec()
-    if (user && (await bcrypt.compare(pass, user.password))) {
-      const { password, ...result } = user.toObject()
-      return result
+  async validateUser(userName: string, pwd: string): Promise<any> {
+    const user = await this.usersService.findOneByUserName(userName)
+    if (!user) {
+      throw new UnauthorizedException('用户不存在')
     }
-    return null
+
+    const { password, ...result } = user
+
+    const isValid = await bcrypt.compare(pwd, password)
+    if (!isValid) {
+      throw new UnauthorizedException('密码错误')
+    }
+
+    return result
   }
 
   //   // auth.service.ts
@@ -44,30 +54,61 @@ export class AuthService {
   //   }
 
   async login(loginDto: LoginDto) {
-    // // 1. 查找用户
-    // const user = await this.usersService.findByEmail(loginDto.email)
-    // if (!user) {
-    //   throw new UnauthorizedException('用户不存在')
-    // }
+    const user = await this.usersService.findOneByUserName(loginDto.userName)
 
-    // // 2. 验证密码
-    // const isValid = await bcrypt.compare(loginDto.password, user.password)
-    // if (!isValid) {
-    //   throw new UnauthorizedException('密码错误')
-    // }
+    if (!user) {
+      throw new UnauthorizedException('用户不存在')
+    }
 
-    // 3. 生成令牌
     const payload = {
-      // sub: user._id,
-      // email: user.email,
-      // roles: user.roles
+      email: loginDto.email,
+      sub: user._id,
+      roles: loginDto.roles
     }
 
     return {
       accessToken: this.jwtService.sign(payload),
       refreshToken: this.jwtService.sign(payload, {
-        expiresIn: '7d'
+        expiresIn: '7d',
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET')
       })
+    }
+  }
+
+  async register(registerDto: RegisterDto) {
+    const salt = await bcrypt.genSalt()
+    const hashedPassword = await bcrypt.hash(registerDto.password, salt)
+
+    return this.usersService.create({
+      ...registerDto,
+      password: hashedPassword,
+      roles: [UserRole.USER] // 默认角色
+    })
+  }
+
+  async refreshToken(refreshToken: string) {
+    try {
+      const payload = this.jwtService.verify(refreshToken, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET')
+      })
+
+      const user = await this.usersService.findOneById(payload.sub)
+      if (!user) {
+        throw new UnauthorizedException('用户不存在')
+      }
+
+      const newPayload = {
+        email: user.email,
+        sub: user._id,
+        roles: user.roles
+      }
+
+      return {
+        accessToken: this.jwtService.sign(newPayload),
+        expiresIn: 15 * 60
+      }
+    } catch (e) {
+      throw new UnauthorizedException('无效的刷新令牌')
     }
   }
 }

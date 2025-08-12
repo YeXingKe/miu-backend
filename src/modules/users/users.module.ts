@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common'
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 import { UsersController } from './users.controller'
 import { UsersService } from './users.service'
 import { User, UserSchema } from './schemas/user.schema'
+import { LoggerMiddleware } from 'src/common/middlewares/logger.midleware'
 
 @Module({
   imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])],
@@ -10,4 +11,8 @@ import { User, UserSchema } from './schemas/user.schema'
   providers: [UsersService],
   exports: [UsersService] // 导出服务供其他模块使用
 })
-export class UsersModule {}
+export class UsersModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('log')
+  }
+}
