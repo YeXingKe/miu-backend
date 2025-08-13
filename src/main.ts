@@ -19,8 +19,8 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config)
 
-  // Swagger UI (开发环境)
-  SwaggerModule.setup('api-docs', app, document, {
+  // Swagger UI (开发环境)  // http://localhost:3000/api 查看 Swagger UI
+  SwaggerModule.setup('api', app, document, {
     customSiteTitle: 'API 文档',
     swaggerOptions: {
       persistAuthorization: true,
@@ -28,24 +28,21 @@ async function bootstrap() {
       operationsSorter: 'method'
     }
   })
-  // 添加JSON端点（如果不存在）
-  app.use('/api-docs-json', (req, res) => {
-    res.json(document)
-  })
 
-  // // ReDoc (生产环境)
-  // app.use(
-  //   '/docs',
-  //   Redoc({
-  //     title: 'API 文档',
-  //     nonce: '',
-  //     specUrl: '/swagger.json',
-  //     redocOptions: {
-  //       theme: { colors: { primary: { main: '#1890ff' } } },
-  //       scrollYOffset: 60
-  //     }
-  //   })
-  // )
+  // ReDoc (生产环境) // http://localhost:3000/docs 查看 ReDoc 文档
+  app.use(
+    '/docs',
+    Redoc({
+      title: 'API 文档',
+      nonce: '',
+      specUrl: '/swagger.json',
+      redocOptions: {
+        theme: { colors: { primary: { main: '#1890ff' } } },
+        scrollYOffset: 60
+      }
+    })
+  )
+  app.use('/swagger.json', (req, res) => res.json(document)) // 数据接口 ,下载一份 OpenAPI 3 JSON，需要执行gen:api命令
   // 在 main.ts 中添加
   // app.use(helmet())
   // app.enableCors({ origin: process.env.CLIENT_URL })
