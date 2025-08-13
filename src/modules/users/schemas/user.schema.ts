@@ -12,21 +12,22 @@ export class User {
   _id?: Types.ObjectId // 不写也自动生成
 
   @ApiProperty({ example: 'testUser', description: '用户名' })
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true, unique: true }) // unique 建立 唯一索引
   userName: string
 
   @ApiProperty({ example: 'testUser@example.com', description: '邮箱' })
   @Prop({ required: true, unique: true })
   email: string
 
+  @ApiProperty({ example: '*******', description: '密码' })
   @Prop({ required: true })
   password: string
 
-  @Prop({ required: false })
-  salt: string // 密码盐值
+  @Prop()
+  salt?: string // 密码盐值
 
   @ApiProperty({ example: '', description: '电话' })
-  @Prop({ required: false, unique: true })
+  @Prop()
   phone: string
 
   @ApiProperty({ example: ['admin'], description: '角色列表' })
@@ -38,7 +39,7 @@ export class User {
   permissions: string[]
 
   @ApiProperty({ example: '', description: '账号是否激活' })
-  @Prop({ required: false, unique: true })
+  @Prop({ type: Boolean, default: true })
   isActive: boolean
 
   @ApiProperty({ example: new Date(), description: '最后登录时间' })
