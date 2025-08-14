@@ -34,7 +34,7 @@ export class TransformInterceptor<T> implements NestInterceptor<T, StandardRespo
         if (statusCode === 204) message = 'Operation completed with no content'
 
         return {
-          //   success: true,
+          //   success: ,
           code: statusCode,
           message,
           data: data || null, // 如果不需要数据可以删除此行

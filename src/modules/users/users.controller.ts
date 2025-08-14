@@ -1,5 +1,5 @@
 // users.controller.ts
-import { Body, Controller, Get, Param, Req, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Param, Req, Post, UseGuards, Delete } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { UsersService } from './users.service'
 import { CreateUserDto } from './dto/create-user.dto'
@@ -24,27 +24,35 @@ export class UsersController {
     return this.usersService.create(createUserDto)
   }
 
-  @Get('allUsers')
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN) // 管理员和编辑可查看
+  @Get('getUsers')
   @ApiOperation({ summary: '获取所有用户' })
   async findAll() {
     return this.usersService.findAll()
   }
 
-  // @Get(':id')
-  // async getUser(@Param('id') id: string): Promise<UserResponseDto> {
-  //   const user = await this.usersService.findById(id)
-  //   return this.toUserDto(user)
-  // }
+  @Post('getUsers')
+  @ApiOperation({ summary: '获取所有用户列表' })
+  async findUsersList() {
+    return this.usersService.findAll()
+  }
 
-  //   private toUserDto(user: UserDocument): UserResponseDto {
-  //     return {
-  //       id: user._id.toString(),
-  //       username: user.username,
-  //       email: user.email,
-  //       roles: user.roles,
-  //       displayName: user.displayName, // 使用虚拟字段
-  //       createdAt: user.createdAt
-  //     }
-  //   }
+  @Get('/getUserById/:id')
+  @ApiOperation({ summary: '通过id获取用户' })
+  async getUserById(@Param('id') id: string) {
+    return await this.usersService.findById(id)
+  }
+
+  @Delete('/deleteUser/:id')
+  @ApiOperation({ summary: '删除单个用户' })
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  async deleteUser(@Param('id') id: string) {
+    return await this.usersService.deleteUser(id)
+  }
+
+  @Delete('/deleteUsers')
+  @ApiOperation({ summary: '批量删除用户' })
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  async deleteUsers(@Body() ids: string[]) {
+    return await this.usersService.deleteUsers(ids)
+  }
 }

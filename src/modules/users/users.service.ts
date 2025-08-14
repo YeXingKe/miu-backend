@@ -32,7 +32,7 @@ export class UsersService {
    * @param userName
    * @returns
    */
-  async findOneById(id: string): Promise<User | null> {
+  async findById(id: string): Promise<User | null> {
     return this.userModel.findOne({ _id: id }).exec()
   }
 
@@ -41,7 +41,25 @@ export class UsersService {
    * @param userName
    * @returns
    */
-  async findOneByUserName(userName: string): Promise<User | null> {
+  async findByUserName(userName: string): Promise<User | null> {
     return this.userModel.findOne({ userName }).exec()
+  }
+
+  /**
+   * 单个用户删除
+   * @param id
+   */
+  async deleteUser(id: string): Promise<void> {
+    await this.userModel.findByIdAndDelete(id).exec()
+  }
+
+  // 批量删除用户
+  async deleteUsers(ids: string[]): Promise<{ deletedCount: number }> {
+    const result = await this.userModel
+      .deleteMany({
+        _id: { $in: ids }
+      })
+      .exec()
+    return { deletedCount: result.deletedCount }
   }
 }

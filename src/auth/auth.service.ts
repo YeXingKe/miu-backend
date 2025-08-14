@@ -18,7 +18,7 @@ export class AuthService {
   ) {}
 
   async validateUser(userName: string, pwd: string): Promise<any> {
-    const user = await this.usersService.findOneByUserName(userName)
+    const user = await this.usersService.findByUserName(userName)
     if (!user) {
       throw new UnauthorizedException('用户不存在')
     }
@@ -27,7 +27,7 @@ export class AuthService {
 
     const isValid = await bcrypt.compare(pwd, password)
     if (!isValid) {
-      throw new UnauthorizedException('账号或密码错误')
+      throw new UnauthorizedException('Invalid credentials')
     }
 
     return result
@@ -55,7 +55,8 @@ export class AuthService {
     const user = await this.validateUser(loginDto.userName, loginDto.password)
 
     const payload = {
-      email: user.email,
+      // email: user.email,
+      name: user.userName,
       sub: user._id,
       roles: user.roles
     }
@@ -77,7 +78,7 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto) {
-    const user = await this.usersService.findOneByUserName(registerDto.userName)
+    const user = await this.usersService.findByUserName(registerDto.userName)
 
     if (user) {
       throw new ConflictException('用户已存在')
@@ -100,7 +101,7 @@ export class AuthService {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET')
       })
 
-      const user = await this.usersService.findOneById(payload.sub)
+      const user = await this.usersService.findById(payload.sub)
       if (!user) {
         throw new UnauthorizedException('用户不存在')
       }

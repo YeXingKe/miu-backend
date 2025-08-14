@@ -25,7 +25,7 @@ export class User {
   email?: string
 
   @ApiProperty({ example: '*******', description: '密码' })
-  @Prop({ required: true, select: false }) // 查询时默认排除返回password
+  @Prop({ required: true }) // 查询时默认排除返回password
   password: string
 
   @Prop()

@@ -34,13 +34,13 @@ export class AuthController {
       }
     }
   })
-  @UseGuards(AuthGuard('local')) // 使用 Passport 的本地策略（邮箱+密码）做登录校验
+  // @UseGuards(AuthGuard('local')) // 使用 Passport 的本地策略（邮箱+密码）做登录校验
   async login(
     @Body() _loginDto: LoginDto, // 仅做 DTO 校验，实际用户已通过 @Request() 注入
     @Req() req
   ) {
     // req.user 是 LocalStrategy validate() 返回的用户
-    return this.authService.login(req.user)
+    return this.authService.login(req.body)
   }
 
   @Post('register')
