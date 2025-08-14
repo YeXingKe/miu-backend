@@ -1,9 +1,6 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { InjectModel } from '@nestjs/mongoose'
 import * as bcrypt from 'bcrypt'
-import { Model } from 'mongoose'
-import { User, UserDocument } from 'src/modules/users/schemas/user.schema'
 import { UsersService } from 'src/modules/users/users.service'
 import { LoginDto } from './dto/login.dto'
 import { ConfigService } from '@nestjs/config'
@@ -12,8 +9,9 @@ import { UserRole } from 'src/common/enums/user-role.enum'
 
 @Injectable()
 export class AuthService {
+  // 用来解密
+  // private readonly privatePem = process.env.PRIVATEKEY // 一般不泄露
   constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService
@@ -29,7 +27,7 @@ export class AuthService {
 
     const isValid = await bcrypt.compare(pwd, password)
     if (!isValid) {
-      throw new UnauthorizedException('密码错误')
+      throw new UnauthorizedException('账号或密码错误')
     }
 
     return result
@@ -54,16 +52,12 @@ export class AuthService {
   //   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.usersService.findOneByUserName(loginDto.userName)
-
-    if (!user) {
-      throw new UnauthorizedException('用户不存在')
-    }
+    const user = await this.validateUser(loginDto.userName, loginDto.password)
 
     const payload = {
-      email: loginDto.email,
+      email: user.email,
       sub: user._id,
-      roles: loginDto.roles
+      roles: user.roles
     }
 
     return {
@@ -75,8 +69,22 @@ export class AuthService {
     }
   }
 
+  async genSalt() {
+    // 动态盐值：生成加密所需的随机盐值（Salt）
+    // 部分信息合并的动态盐值（不推荐）：STATIC_SALT + username.slice(0, 2) + new Date().getFullYear()
+    const salt = await bcrypt.genSalt(10)
+    return salt
+  }
+
   async register(registerDto: RegisterDto) {
-    const salt = await bcrypt.genSalt()
+    const user = await this.usersService.findOneByUserName(registerDto.userName)
+
+    if (user) {
+      throw new ConflictException('用户已存在')
+    }
+
+    // 生成加密所需的随机盐值（Salt）
+    const salt = await this.genSalt()
     const hashedPassword = await bcrypt.hash(registerDto.password, salt)
 
     return this.usersService.create({

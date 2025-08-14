@@ -1,8 +1,9 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
-
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import Redoc from 'redoc-express'
+import { TransformInterceptor } from './common/interceptors/transform.interceptor'
+import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
@@ -42,6 +43,7 @@ async function bootstrap() {
       }
     })
   )
+
   app.use('/swagger.json', (req, res) => res.json(document)) // 数据接口 ,下载一份 OpenAPI 3 JSON，需要执行gen:api命令
   // 在 main.ts 中添加
   // app.use(helmet())
@@ -57,6 +59,10 @@ async function bootstrap() {
   //     message: '尝试次数过多，请15分钟后再试',
   //   })
   // );
+
+  app.useGlobalInterceptors(new TransformInterceptor())
+  app.useGlobalFilters(new HttpExceptionFilter())
+
   await app.listen(3000)
 }
 

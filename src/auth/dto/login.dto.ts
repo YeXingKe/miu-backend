@@ -25,19 +25,9 @@ export class LoginDto {
   smsCode?: string
 
   @ApiProperty({
-    example: 'example@foxmail.com',
-    description: '用户名',
-    required: false
-  })
-  @IsString()
-  @IsOptional()
-  @IsEmail()
-  email?: string
-
-  @ApiProperty({
     example: 'admin',
     description: '用户名',
-    required: false
+    required: true
   })
   @IsString()
   @IsOptional()
@@ -46,11 +36,10 @@ export class LoginDto {
 
   @ApiProperty({
     example: 'admin',
-    description: '角色',
-    required: false
+    description: '密码',
+    required: true
   })
-  @IsArray()
+  @IsString()
   @IsOptional()
-  @IsEnum(UserRole)
-  roles: string[]
+  password: string
 }

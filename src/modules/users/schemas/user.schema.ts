@@ -3,24 +3,29 @@ import { Document, Types } from 'mongoose'
 import { UserRole } from 'src/common/enums/user-role.enum'
 
 import { ApiProperty } from '@nestjs/swagger'
+import { IsNotEmpty } from 'class-validator'
 // *.entity.ts：TypeORM 的“实体类”，对应 关系型数据库（MySQL、PostgreSQL …）。
 // *.schema.ts：Mongoose 的“模式定义”，对应 MongoDB。
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true
+})
 export class User {
-  @Prop()
-  _id?: Types.ObjectId // 不写也自动生成
+  @Prop({ type: String, default: new Types.ObjectId() })
+  _id: Types.ObjectId // 不写也自动生成
 
   @ApiProperty({ example: 'testUser', description: '用户名' })
   @Prop({ required: true, unique: true }) // unique 建立 唯一索引
   userName: string
 
   @ApiProperty({ example: 'testUser@example.com', description: '邮箱' })
-  @Prop({ required: true, unique: true })
-  email: string
+  // @Prop({ required: false, unique: true, sparse: true, default: null }) // `sparse: true` 允许 null/undefined 不触发唯一约束
+  // @IsNotEmpty()
+  @Prop()
+  email?: string
 
   @ApiProperty({ example: '*******', description: '密码' })
-  @Prop({ required: true })
+  @Prop({ required: true, select: false }) // 查询时默认排除返回password
   password: string
 
   @Prop()
@@ -31,12 +36,12 @@ export class User {
   phone: string
 
   @ApiProperty({ example: ['admin'], description: '角色列表' })
-  @Prop({ type: [String], enum: UserRole, default: [UserRole.EDITOR] })
+  @Prop({ type: [String], enum: UserRole, default: [UserRole.USER] })
   roles: UserRole[]
 
-  @ApiProperty({ example: '', description: '细粒度权限码' })
-  @Prop({ required: false, unique: true })
-  permissions: string[]
+  // @ApiProperty({ example: '', description: '细粒度权限码' })
+  // @Prop({ required: false, unique: true })
+  // permissions: string[]
 
   @ApiProperty({ example: '', description: '账号是否激活' })
   @Prop({ type: Boolean, default: true })

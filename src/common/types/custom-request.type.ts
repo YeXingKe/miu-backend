@@ -5,7 +5,7 @@ import { UserDocument } from '../../modules/users/schemas/user.schema'
 export interface AuthenticatedRequest extends Request {
   user: {
     userId?: string
-    email: string
+    email?: string
     roles: string[]
     // 可以添加其他JWT payload字段
     refreshToken?: string

@@ -15,7 +15,7 @@ import { UserRole } from 'src/common/enums/user-role.enum'
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
+  @Post('create')
   @ApiOperation({ summary: '创建用户', description: '需要管理员权限' })
   @ApiResponse({ status: 201, description: '用户创建成功' })
   @ApiResponse({ status: 400, description: '参数错误' })
@@ -24,18 +24,18 @@ export class UsersController {
     return this.usersService.create(createUserDto)
   }
 
-  @Get()
-  @Roles(UserRole.ADMIN, UserRole.EDITOR) // 管理员和编辑可查看
+  @Get('allUsers')
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN) // 管理员和编辑可查看
   @ApiOperation({ summary: '获取所有用户' })
   async findAll() {
     return this.usersService.findAll()
   }
 
-  //   @Get(':id')
-  //   async getUser(@Param('id') id: string): Promise<UserResponseDto> {
-  //     const user = await this.usersService.findById(id)
-  //     return this.toUserDto(user)
-  //   }
+  // @Get(':id')
+  // async getUser(@Param('id') id: string): Promise<UserResponseDto> {
+  //   const user = await this.usersService.findById(id)
+  //   return this.toUserDto(user)
+  // }
 
   //   private toUserDto(user: UserDocument): UserResponseDto {
   //     return {

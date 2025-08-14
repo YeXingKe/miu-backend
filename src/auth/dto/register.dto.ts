@@ -41,16 +41,4 @@ export class RegisterDto {
   @IsOptional()
   @MinLength(8, { message: '密码' })
   password: string
-
-  @ApiProperty({
-    example: [UserRole.USER],
-    description: '用户角色',
-    enum: UserRole,
-    isArray: true,
-    required: false
-  })
-  @IsArray()
-  @IsOptional()
-  @IsEnum(UserRole)
-  roles: string[]
 }

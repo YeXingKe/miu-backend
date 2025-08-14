@@ -50,6 +50,6 @@ export class CreateUserDto {
   })
   @IsArray()
   @IsOptional()
-  @IsEnum(UserRole)
-  roles: string[]
+  @IsEnum(UserRole, { each: true }) // 数组每个元素都要是枚举
+  roles?: UserRole[] = [UserRole.USER] // ← 直接给默认值 仅用于 类转换/验证阶段，不会写进 Mongo
 }

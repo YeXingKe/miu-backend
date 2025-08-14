@@ -6,6 +6,7 @@ import { User, UserSchema } from './schemas/user.schema'
 import { LoggerMiddleware } from 'src/common/middlewares/logger.midleware'
 
 @Module({
+  //  UserModule 注册模型
   imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])],
   controllers: [UsersController],
   providers: [UsersService],
