@@ -57,12 +57,13 @@ export class AuthService {
     const payload = {
       // email: user.email,
       name: user.userName,
-      sub: user._id,
+      userId: user._id,
       roles: user.roles
     }
 
     return {
-      accessToken: this.jwtService.sign(payload),
+      // accessToken (访问令牌)	refreshToken (刷新令牌)
+      accessToken: this.jwtService.sign(payload), // 时间取决于全局配置
       refreshToken: this.jwtService.sign(payload, {
         expiresIn: '7d',
         secret: this.configService.get<string>('JWT_REFRESH_SECRET')

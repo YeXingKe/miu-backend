@@ -35,7 +35,9 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/require-await': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
-      '@typescript-eslint/no-unsafe-argument': 'off'
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      'no-unsafe-enum-comparison': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off'
     }
   }
 )

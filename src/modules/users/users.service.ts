@@ -1,13 +1,21 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { CreateUserDto } from './dto/create-user.dto'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { User, UserDocument } from './schemas/user.schema'
+import { RoleService } from '../roles/roles.service'
+
+/**
+ * 	用户管理、角色分配、权限校验
+ */
 
 @Injectable()
 export class UsersService {
   // 服务层注入模型并写入一条数据（触发“自动建”）
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private roleService: RoleService
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const createdUser = new this.userModel({
@@ -61,5 +69,36 @@ export class UsersService {
       })
       .exec()
     return { deletedCount: result.deletedCount }
+  }
+
+  // 角色分配
+  async assignRoles(userId: string, roleIds: string[]): Promise<User> {
+    await this.roleService.validateRolesExist(roleIds)
+
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(userId, { $set: { roles: roleIds } }, { new: true })
+      .populate('roles')
+      .exec()
+
+    if (!updatedUser) {
+      throw new NotFoundException(`User with ID ${userId} not found`)
+    }
+
+    return updatedUser as User // 类型断言
+  }
+
+  // 获取用户完整权限列表（合并所有角色的权限）
+  async getUserPermissions(userId: string): Promise<string[]> {
+    // populate('roles')将 ObjectId 引用替换为完整的关联文档
+    const user = await this.userModel.findById(userId).populate('roles')
+    if (!user) throw new Error('User not found')
+
+    return user.roles.flatMap(role => role.permissions)
+  }
+
+  // 验证用户是否有特定权限
+  async hasPermission(userId: string, requiredPermission: string): Promise<boolean> {
+    const permissions = await this.getUserPermissions(userId)
+    return permissions.includes(requiredPermission) || permissions.some(p => p === '*') // 超级管理员通配符
   }
 }

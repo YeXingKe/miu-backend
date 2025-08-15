@@ -1,9 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Document, Types } from 'mongoose'
+import { Document, HydratedDocument, Model, Types } from 'mongoose'
 import { UserRole } from 'src/common/enums/user-role.enum'
 
 import { ApiProperty } from '@nestjs/swagger'
 import { IsNotEmpty } from 'class-validator'
+import { RoleDocument } from 'src/modules/roles/schemas/roles.schemas'
 // *.entity.ts：TypeORM 的“实体类”，对应 关系型数据库（MySQL、PostgreSQL …）。
 // *.schema.ts：Mongoose 的“模式定义”，对应 MongoDB。
 
@@ -21,7 +22,12 @@ export class User {
   @ApiProperty({ example: 'testUser@example.com', description: '邮箱' })
   // @Prop({ required: false, unique: true, sparse: true, default: null }) // `sparse: true` 允许 null/undefined 不触发唯一约束
   // @IsNotEmpty()
-  @Prop()
+  @Prop({
+    validate: {
+      validator: (v: string) => /^[\w-\\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(v),
+      message: 'Invalid email format'
+    }
+  })
   email?: string
 
   @ApiProperty({ example: '*******', description: '密码' })
@@ -35,20 +41,27 @@ export class User {
   @Prop()
   phone: string
 
-  @ApiProperty({ example: ['admin'], description: '角色列表' })
-  @Prop({ type: [String], enum: UserRole, default: [UserRole.USER] })
-  roles: UserRole[]
-
-  // @ApiProperty({ example: '', description: '细粒度权限码' })
-  // @Prop({ required: false, unique: true })
-  // permissions: string[]
+  @ApiProperty({ example: '', description: '关联的角色ID数组' })
+  @Prop({
+    type: [
+      {
+        type: Types.ObjectId,
+        ref: 'Role'
+      }
+    ],
+    default: []
+  })
+  roles: Types.ObjectId[] | RoleDocument[] // 联合类型 // 关联的角色ID数组
 
   @ApiProperty({ example: '', description: '账号是否激活' })
   @Prop({ type: Boolean, default: true })
   isActive: boolean
 
   @ApiProperty({ example: new Date(), description: '最后登录时间' })
-  @Prop()
+  @Prop({
+    type: Date,
+    default: null
+  })
   lastLoginAt: Date
 
   @ApiProperty({ example: new Date(), description: '最后登录IP' })
@@ -60,7 +73,10 @@ export class User {
   failedLoginAttempts: number
 
   @ApiProperty({ example: new Date(), description: '账号锁定截止时间' })
-  @Prop()
+  @Prop({
+    type: Date,
+    default: null
+  })
   lockUntil?: Date
 
   @ApiProperty({ example: new Date(), description: '刷新令牌（需加密存储）' })
@@ -82,10 +98,8 @@ export const UserSchema = SchemaFactory.createForClass(User)
 // 定义文档类型 (User + Mongoose Document方法)
 export type UserDocument = User &
   Document & {
-    // 可以在这里扩展文档方法
-    comparePassword: (candidatePassword: string) => Promise<boolean>
+    roles: RoleDocument[] // 填充后类型
   }
-
 // 添加实例方法
 UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
   const bcrypt = await import('bcrypt')

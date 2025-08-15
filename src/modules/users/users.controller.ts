@@ -9,9 +9,9 @@ import { RolesGuard } from 'src/auth/guards/roles.guard'
 import { UserRole } from 'src/common/enums/user-role.enum'
 
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
 @ApiTags('Users')
 @Controller('users') // 指定路由前缀
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

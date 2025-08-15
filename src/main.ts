@@ -16,6 +16,8 @@ async function bootstrap() {
     .addBearerAuth() // JWT 支持
     .addTag('Auth', '认证相关接口')
     .addTag('Users', '用户管理接口')
+    .addTag('Roles', '角色权限接口')
+    .addTag('Menus', '动态菜单接口')
     .build()
 
   const document = SwaggerModule.createDocument(app, config)
@@ -26,7 +28,9 @@ async function bootstrap() {
     swaggerOptions: {
       persistAuthorization: true,
       tagsSorter: 'alpha',
-      operationsSorter: 'method'
+      operationsSorter: 'method',
+      defaultModelsExpandDepth: -1, // 隐藏 schemas 部分
+      docExpansion: 'none' // 默认折叠所有文档
     }
   })
 

@@ -115,6 +115,20 @@ net start MongoDB
 实体：_.entity.ts 或 _.schema.ts
 校验: _.dto.ts`
 
+## RBAC权限控制
+
+- 用户-角色：多对多关系
+  - 用户通过 roles 字段关联多个角色
+  - 角色通过 users 字段反向关联(通常不需要查询)
+
+- 角色-菜单：多对多关系
+  - 菜单通过 roles 字段定义可访问角色
+  - 角色通过权限字符串控制菜单是否显示
+
+- 菜单层级：树形结构
+  - 通过 parentId 构建层级关系
+  - order 字段控制同级菜单排序
+
 ## Stay in touch
 
 - Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)

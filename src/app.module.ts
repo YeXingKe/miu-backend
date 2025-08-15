@@ -3,16 +3,15 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { UsersModule } from './modules/users/users.module'
 import { AuthModule } from './auth/auth.module'
-import { CommonModule } from './common/common.module'
 import { MongooseModule } from '@nestjs/mongoose'
 import { ConfigModule, ConfigService } from '@nestjs/config'
+import { MenusModule } from './modules/menus/menus.module'
 
 @Module({
   imports: [
-    // CoreModule,
+    MenusModule,
     UsersModule,
     AuthModule,
-    CommonModule,
     ConfigModule.forRoot({ isGlobal: true }), // 必须加载 .env
     MongooseModule.forRootAsync({
       imports: [ConfigModule], // 依赖注入 ConfigModule
