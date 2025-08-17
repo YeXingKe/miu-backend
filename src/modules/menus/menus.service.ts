@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose'
 import { RoleService } from '../roles/roles.service'
 import { CreateMenuDto } from './dto/create-menu.dto'
 import { UpdateMenuDto } from './dto/update-menu.dto'
+import { MenuDto } from './dto/menu.dto'
 
 @Injectable()
 export class MenusService {
@@ -50,6 +51,26 @@ export class MenusService {
       .sort({ order: 1 })
 
     return this.buildTree(menus)
+  }
+
+  private toDto(menu: Menu): MenuDto {
+    return {
+      id: menu._id.toString(),
+      name: menu.name,
+      path: menu.path,
+      icon: menu.icon,
+      component: menu.component || undefined,
+      redirect: menu.redirect || undefined,
+      meta: {
+        title: menu.name,
+        icon: menu.icon,
+        hidden: !menu.visible,
+        roles: menu.roles, // 假设已经转换为角色标识
+        affix: menu.affix,
+        noCache: menu.noCache
+      },
+      order: menu.order
+    }
   }
 
   private buildTree(menus: Menu[], parentId: Types.ObjectId | null = null): Menu[] {

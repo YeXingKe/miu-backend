@@ -79,6 +79,15 @@ export class Menu extends Document {
   })
   apiPath: string // 关联的后端API路径 (如: /api/users)
 
+  @Prop({ default: '' })
+  redirect: string
+
+  @Prop({ default: false })
+  affix: boolean
+
+  @Prop({ default: false })
+  noCache: boolean
+
   // 添加虚拟字段（不存数据库）
   children?: Menu[]
 }

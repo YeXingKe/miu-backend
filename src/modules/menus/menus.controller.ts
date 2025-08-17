@@ -23,7 +23,7 @@ export class MenusController {
   }
 
   // 获取完整菜单树（管理员用）
-  @Get('menuTree')
+  @Get('getMenusTree')
   @ApiOperation({ summary: '获取完整菜单树（管理员用）' })
   @RequirePermissions(PermissionsEnum.MENU_READ)
   async getFullMenuTree() {
@@ -33,7 +33,7 @@ export class MenusController {
   // 获取当前用户可见菜单（动态路由）
   @Get('userMenu')
   @ApiOperation({ summary: '获取当前用户可见菜单（动态路由）' })
-  async getMyMenus(@Req() req) {
+  async getMenuTreeByRoles(@Req() req) {
     const roleIds = req.user.roles.map(role => role._id)
     return this.menusService.getMenuTreeByRoles(roleIds)
   }
