@@ -11,7 +11,7 @@ import { UserRole } from 'src/common/enums/user-role.enum'
 @ApiBearerAuth()
 @ApiTags('Users')
 @Controller('users') // 指定路由前缀
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard) // JwtAuthGuard自定义的守卫，继承自 AuthGuard('jwt'), 触发JwtStrategy
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -30,10 +30,11 @@ export class UsersController {
     return this.usersService.findAll()
   }
 
-  @Post('getUsers')
-  @ApiOperation({ summary: '获取所有用户列表' })
-  async findUsersList() {
-    return this.usersService.findAll()
+  @Get('getUserById')
+  @ApiOperation({ summary: '通过id获取用户' })
+  async getUserInfo(@Req() req) {
+    // req.user 来自JWT策略的validate()方法返回
+    return this.usersService.findById(req.user.userId)
   }
 
   @Get('/getUserById/:id')

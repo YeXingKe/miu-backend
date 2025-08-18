@@ -35,7 +35,6 @@ export class MenusService {
 
   async getFullMenuTree(): Promise<Menu[]> {
     const menus = await this.menuModel.find({ isDeleted: { $ne: true } }).sort({ order: 1 })
-
     return this.buildTree(menus)
   }
   // 根据角色获取动态菜单树
@@ -80,7 +79,7 @@ export class MenusService {
         .filter(
           menu =>
             (menu.parentId === null && parentId === null) || // 情况1：获取所有顶级菜单
-            (menu.parentId && menu.parentId === parentId) // 情况2：获取指定parentId的子菜单
+            (menu.parentId && new Types.ObjectId(menu.parentId).equals(parentId)) // 情况2：获取指定parentId的子菜单
         )
         // 第二步：递归构建子树
         .map(menu => ({

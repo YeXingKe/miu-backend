@@ -56,7 +56,7 @@ export class AuthService {
 
     const payload = {
       // email: user.email,
-      name: user.userName,
+      userName: user.userName,
       userId: user._id,
       roles: user.roles
     }
@@ -108,8 +108,8 @@ export class AuthService {
       }
 
       const newPayload = {
-        email: user.email,
-        sub: user._id,
+        userName: user.userName,
+        userId: user._id,
         roles: user.roles
       }
 

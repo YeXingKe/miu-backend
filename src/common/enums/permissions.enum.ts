@@ -1,5 +1,5 @@
 export enum PermissionsEnum {
-  ALL_MANGE = 'all:*',
+  ALL_MANGE = '*',
   // 用户管理
   USER_CREATE = 'user:create',
   USER_READ = 'user:read',

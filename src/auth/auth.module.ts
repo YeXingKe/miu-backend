@@ -10,9 +10,12 @@ import { UsersService } from 'src/modules/users/users.service'
 import { LocalStrategy } from './strategies/local.strategy'
 import { JwtStrategy } from './strategies/jwt.strategy'
 import { RoleModule } from 'src/modules/roles/roles.module'
+import { UsersModule } from '@/modules/users/users.module'
+import { UserRole, UserRoleSchema } from '@/modules/users/schemas/user-role.schema'
 
 @Module({
   imports: [
+    UsersModule,
     RoleModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
@@ -23,8 +26,7 @@ import { RoleModule } from 'src/modules/roles/roles.module'
         signOptions: { expiresIn: configService.get<string>('JWT_EXPIRES_IN') }
       }),
       inject: [ConfigService]
-    }),
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])
+    })
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy, UsersService],

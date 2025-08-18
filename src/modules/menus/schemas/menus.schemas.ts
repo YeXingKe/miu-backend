@@ -1,3 +1,5 @@
+import { PermissionsEnum } from '@/common/enums/permissions.enum'
+import { RoleDocument } from '@/modules/roles/schemas/roles.schemas'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { Document, Types } from 'mongoose'
 
@@ -8,11 +10,22 @@ export class Menu extends Document {
   @Prop({
     type: String,
     required: true,
+    unique: true,
     trim: true,
+    uppercase: true,
     minlength: 2,
     maxlength: 20
   })
   name: string // 菜单显示名称
+
+  @Prop({
+    type: String,
+    required: true,
+    trim: true,
+    minlength: 2,
+    maxlength: 20
+  })
+  title: string // 菜单显示名称
 
   @Prop({
     type: String,
@@ -63,7 +76,9 @@ export class Menu extends Document {
     ref: 'Role',
     default: []
   })
-  roles: Types.ObjectId[] // 可访问的角色ID数组
+  roleIds: Types.ObjectId[] // 可访问的角色ID数组
+
+  roles: PermissionsEnum[]
 
   @Prop({
     type: String,

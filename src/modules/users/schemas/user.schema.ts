@@ -5,6 +5,7 @@ import { UserRole } from 'src/common/enums/user-role.enum'
 import { ApiProperty } from '@nestjs/swagger'
 import { IsNotEmpty } from 'class-validator'
 import { RoleDocument } from 'src/modules/roles/schemas/roles.schemas'
+import { PermissionsEnum } from '@/common/enums/permissions.enum'
 // *.entity.ts：TypeORM 的“实体类”，对应 关系型数据库（MySQL、PostgreSQL …）。
 // *.schema.ts：Mongoose 的“模式定义”，对应 MongoDB。
 
@@ -12,8 +13,7 @@ import { RoleDocument } from 'src/modules/roles/schemas/roles.schemas'
   timestamps: true
 })
 export class User {
-  @Prop({ type: String, default: new Types.ObjectId() })
-  _id: Types.ObjectId // 不写也自动生成
+  declare _id: Types.ObjectId // 不写也自动生成
 
   @ApiProperty({ example: 'testUser', description: '用户名' })
   @Prop({ required: true, unique: true }) // unique 建立 唯一索引
@@ -23,10 +23,10 @@ export class User {
   // @Prop({ required: false, unique: true, sparse: true, default: null }) // `sparse: true` 允许 null/undefined 不触发唯一约束
   // @IsNotEmpty()
   @Prop({
-    validate: {
-      validator: (v: string) => /^[\w-\\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(v),
-      message: 'Invalid email format'
-    }
+    // validate: {
+    //   validator: (v: string) => /^[\w-\\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(v),
+    //   message: 'Invalid email format'
+    // }
   })
   email?: string
 
@@ -51,7 +51,10 @@ export class User {
     ],
     default: []
   })
-  roles: Types.ObjectId[] | RoleDocument[] // 联合类型 // 关联的角色ID数组
+  roleIds: Types.ObjectId[] // 联合类型 // 关联的角色ID数组
+
+  @ApiProperty({ example: '', description: '关联的角色数组（不存数据库）' })
+  roles: PermissionsEnum[]
 
   @ApiProperty({ example: '', description: '账号是否激活' })
   @Prop({ type: Boolean, default: true })
@@ -96,10 +99,7 @@ export const UserSchema = SchemaFactory.createForClass(User)
 // })
 
 // 定义文档类型 (User + Mongoose Document方法)
-export type UserDocument = User &
-  Document & {
-    roles: RoleDocument[] // 填充后类型
-  }
+export type UserDocument = User & Document
 // 添加实例方法
 UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
   const bcrypt = await import('bcrypt')

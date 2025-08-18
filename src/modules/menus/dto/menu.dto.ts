@@ -1,3 +1,5 @@
+import { PermissionsEnum } from '@/common/enums/permissions.enum'
+import { RoleDocument } from '@/modules/roles/schemas/roles.schemas'
 import { Types } from 'mongoose'
 
 export class MenuDto {
@@ -12,7 +14,7 @@ export class MenuDto {
     icon?: string
     hidden?: boolean
     alwaysShow?: boolean
-    roles?: Types.ObjectId[] // 角色标识字符串数组
+    roles?: PermissionsEnum[] // 角色标识字符串数组
     keepAlive?: boolean
     affix?: boolean
     noCache?: boolean

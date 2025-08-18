@@ -1,3 +1,4 @@
+import { PermissionsEnum } from '@/common/enums/permissions.enum'
 import { ApiProperty } from '@nestjs/swagger'
 
 export class UserResponseDto {
@@ -11,11 +12,18 @@ export class UserResponseDto {
   email: string
 
   @ApiProperty({
-    example: ['user'],
-    description: '角色列表',
+    example: [''],
+    description: '角色标识数组',
     type: [String]
   })
-  roles: string[]
+  roleIds: string[]
+
+  @ApiProperty({
+    example: [''],
+    description: '角色标识数组',
+    type: [String]
+  })
+  roles: PermissionsEnum[]
 
   @ApiProperty({
     example: 'john_doe (john@example.com)',

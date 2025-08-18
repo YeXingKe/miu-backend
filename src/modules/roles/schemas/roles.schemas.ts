@@ -9,6 +9,12 @@ export class Role {
 
   @Prop({
     type: String,
+    maxlength: 32
+  })
+  name: string // 角色显示名称
+
+  @Prop({
+    type: String,
     required: true,
     unique: true,
     trim: true,
@@ -16,14 +22,7 @@ export class Role {
     minlength: 2,
     maxlength: 20
   })
-  name: string // 角色标识（英文唯一键） (如: ADMIN, EDITOR)
-
-  @Prop({
-    type: String,
-    default: '',
-    maxlength: 32
-  })
-  code: string // 角色显示名称
+  code: string // 角色标识（英文唯一键） (如: ADMIN, EDITOR)
 
   @Prop({
     type: String,
@@ -55,7 +54,7 @@ export class Role {
     default: [],
     select: false
   })
-  users: Types.ObjectId[] // 关联的用户(通常不需要查询)
+  userIds: Types.ObjectId[] // 关联的用户(通常不需要查询)
 }
 
 export type RoleDocument = Role & Document
