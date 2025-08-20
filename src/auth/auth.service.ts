@@ -62,12 +62,13 @@ export class AuthService {
     }
 
     return {
+      ...user,
       // accessToken (访问令牌)	refreshToken (刷新令牌)
-      accessToken: this.jwtService.sign(payload), // 时间取决于全局配置
-      refreshToken: this.jwtService.sign(payload, {
-        expiresIn: '7d',
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET')
-      })
+      token: this.jwtService.sign(payload) // 时间取决于全局配置
+      // refreshToken: this.jwtService.sign(payload, {
+      //   expiresIn: this.configService.get<string>('REFRESH_EXPIRES_IN'),
+      //   secret: this.configService.get<string>('JWT_REFRESH_SECRET')
+      // })
     }
   }
 
@@ -102,7 +103,7 @@ export class AuthService {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET')
       })
 
-      const user = await this.usersService.findById(payload.sub)
+      const user = await this.usersService.findById(payload.userId)
       if (!user) {
         throw new UnauthorizedException('用户不存在')
       }
@@ -115,7 +116,7 @@ export class AuthService {
 
       return {
         accessToken: this.jwtService.sign(newPayload),
-        expiresIn: 15 * 60
+        expiresIn: this.configService.get<string>('REFRESH_EXPIRES_IN')
       }
     } catch (e) {
       throw new UnauthorizedException('无效的刷新令牌')

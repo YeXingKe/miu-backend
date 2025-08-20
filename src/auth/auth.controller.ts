@@ -66,4 +66,15 @@ export class AuthController {
   async getRandomSalt() {
     return this.authService.genSalt()
   }
+
+  @Get('refreshToken')
+  @ApiOperation({ summary: '刷新Token' })
+  @ApiResponse({
+    status: 200,
+    description: '获取成功'
+  })
+  @Public()
+  async refreshToken(@Body() _body: { refreshToken: string }, @Req() req) {
+    return this.authService.refreshToken(req.body.refreshToken)
+  }
 }
