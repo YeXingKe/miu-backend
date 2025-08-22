@@ -7,6 +7,8 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard'
 import { Roles } from 'src/auth/decorators/roles.decorator'
 import { RolesGuard } from 'src/auth/guards/roles.guard'
 import { UserRole } from 'src/common/enums/user-role.enum'
+import { PaginationDto } from '@/common/dto/pagination.dto'
+import { PaginationFilterDto } from '@/common/dto/pagination-filter.dto'
 
 @ApiBearerAuth()
 @ApiTags('Users')
@@ -24,10 +26,10 @@ export class UsersController {
     return this.usersService.create(createUserDto)
   }
 
-  @Get('getUsers')
+  @Post('getUsers')
   @ApiOperation({ summary: '获取所有用户' })
-  async findAll() {
-    return this.usersService.findAll()
+  findAll(@Body() paginationFilterDto: PaginationFilterDto) {
+    return this.usersService.findAll(paginationFilterDto)
   }
 
   @Get('getUserById')

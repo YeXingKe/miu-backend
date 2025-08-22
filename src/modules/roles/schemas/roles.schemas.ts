@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
+import { ApiProperty } from '@nestjs/swagger'
 import mongoose, { Document, HydratedDocument, Model, model, Types } from 'mongoose'
 import { PERMISSIONS, PermissionsEnum } from 'src/common/enums/permissions.enum'
 // import mongoosePaginate from 'mongoose-paginate-v2'
@@ -11,6 +12,7 @@ export class Role {
     type: String,
     maxlength: 32
   })
+  @ApiProperty({ example: '', description: '角色显示名称' })
   name: string // 角色显示名称
 
   @Prop({
@@ -22,6 +24,7 @@ export class Role {
     minlength: 2,
     maxlength: 20
   })
+  @ApiProperty({ example: '', description: '角色标识（英文唯一键）' })
   code: string // 角色标识（英文唯一键） (如: ADMIN, EDITOR)
 
   @Prop({
@@ -29,6 +32,7 @@ export class Role {
     default: '',
     maxlength: 100
   })
+  @ApiProperty({ example: '', description: '角色描述' })
   description: string // 角色描述
 
   @Prop({
@@ -36,12 +40,14 @@ export class Role {
     enum: PERMISSIONS, // 使用枚举值数组
     default: []
   })
+  @ApiProperty({ example: '', description: '权限标识数组' })
   permissions: PermissionsEnum[] // 权限标识数组 (RBAC核心)
 
   @Prop({
     type: Boolean,
     default: true
   })
+  @ApiProperty({ example: '', description: '是否默认角色' })
   isDefault: boolean // 是否默认角色(新用户自动分配)
 
   @Prop({
@@ -54,6 +60,7 @@ export class Role {
     default: [],
     select: false
   })
+  @ApiProperty({ example: '', description: '关联的用户' })
   userIds: Types.ObjectId[] // 关联的用户(通常不需要查询)
 }
 

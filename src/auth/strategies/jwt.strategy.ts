@@ -23,7 +23,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: any) {
     // 获取的是jwt加密时的信息
     // 这里返回的数据会被自动挂载到request.user
-    console.log('validate==', payload)
     return {
       userId: payload.userId,
       userName: payload.userName,

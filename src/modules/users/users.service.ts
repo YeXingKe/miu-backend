@@ -6,7 +6,17 @@ import { User, UserDocument } from './schemas/user.schema'
 import { RoleService } from '../roles/roles.service'
 import { PermissionsEnum } from '@/common/enums/permissions.enum'
 import { UserRole } from './schemas/user-role.schema'
+import { PaginationFilterDto } from '@/common/dto/pagination-filter.dto'
 
+export interface PaginationResponse<T> {
+  data: T[]
+  meta: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
 /**
  * 	用户管理、角色分配、权限校验
  */
@@ -35,10 +45,46 @@ export class UsersService {
    * 查询所有用户
    * @returns
    */
-  async findAll(): Promise<User[]> {
+  async findAll(paginationFilterDto: PaginationFilterDto): Promise<PaginationResponse<User>> {
     // 查出 users 集合里所有用户，**并把 password 字段排除掉，返回纯数组
     // .exec() → 把 Query 对象真正发出去并返回 Promise，可 await
-    return this.userModel.find().select('-password').exec()
+    const { page, limit, search, sortBy, sortOrder, isActive } = paginationFilterDto
+    const skip = (page - 1) * limit
+
+    // 构建查询条件
+    const query: any = {}
+
+    if (search) {
+      query.$or = [{ userName: { $regex: search, $options: 'i' } }, { email: { $regex: search, $options: 'i' } }]
+    }
+
+    if (isActive !== undefined) {
+      query.isActive = isActive
+    }
+
+    // 构建排序条件
+    const sort: any = {}
+    sort[sortBy as string] = sortOrder?.toLowerCase() === 'desc' ? -1 : 1
+
+    // 执行查询
+    const [data, total] = await Promise.all([
+      this.userModel.find(query).sort(sort).skip(skip).limit(limit).select('-password').exec(),
+      this.userModel.countDocuments(query).exec()
+    ])
+
+    // 计算总页数
+    const totalPages = Math.ceil(total / limit)
+
+    // 返回格式化响应
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages
+      }
+    }
   }
 
   /**

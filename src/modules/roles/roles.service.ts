@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { UpdateRoleDto } from './dto/update-role.dto'
-import { PaginationParams } from 'src/common/dto/pagination.dto'
 import { Role, RoleDocument } from './schemas/roles.schemas'
 // import type { PaginateModel } from 'mongoose-paginate-v2' // 关键修改
 
