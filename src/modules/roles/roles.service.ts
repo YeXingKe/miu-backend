@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { UpdateRoleDto } from './dto/update-role.dto'
 import { Role, RoleDocument } from './schemas/roles.schemas'
+import { PaginationFilterDto } from '@/common/dto/pagination-filter.dto'
+import { PaginationResponse } from '../users/users.service'
 // import type { PaginateModel } from 'mongoose-paginate-v2' // 关键修改
 
 @Injectable()
@@ -53,26 +55,47 @@ export class RoleService {
     }, {})
   }
 
-  //   // 分页查询角色列表
-  //   async paginate(params: PaginationParams): Promise<PaginateResult<RoleDocument>> {
-  //     const { page = 1, limit = 10, search } = params
-  //     const query: any = {}
+  async findAll(paginationFilterDto: PaginationFilterDto): Promise<PaginationResponse<Role>> {
+    // 查出 users 集合里所有用户，**并把 password 字段排除掉，返回纯数组
+    // .exec() → 把 Query 对象真正发出去并返回 Promise，可 await
+    const { page, limit, search, sortBy, sortOrder, isActive } = paginationFilterDto
+    const skip = (page - 1) * limit
 
-  //     // 搜索条件
-  //     if (search) {
-  //       query.$or = [{ name: { $regex: search, $options: 'i' } }, { code: { $regex: search, $options: 'i' } }]
-  //     }
+    // 构建查询条件
+    const query: any = {}
 
-  //     const options = {
-  //       page,
-  //       limit,
-  //       sort: { createdAt: -1 },
-  //       select: '-__v', // 排除版本字段
-  //       populate: { path: 'permissions', select: 'code name' } // 关联权限详情
-  //     }
+    if (search) {
+      query.$or = [{ name: { $regex: search, $options: 'i' } }, { code: { $regex: search, $options: 'i' } }]
+    }
 
-  //     return this.roleModel.paginate(query, options)
-  //   }
+    if (isActive !== undefined) {
+      query.isActive = isActive
+    }
+
+    // 构建排序条件
+    const sort: any = {}
+    sort[sortBy as string] = sortOrder?.toLowerCase() === 'desc' ? -1 : 1
+
+    // 执行查询
+    const [data, total] = await Promise.all([
+      this.roleModel.find(query).sort(sort).skip(skip).limit(limit).exec(),
+      this.roleModel.countDocuments(query).exec()
+    ])
+
+    // 计算总页数
+    const totalPages = Math.ceil(total / limit)
+
+    // 返回格式化响应
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages
+      }
+    }
+  }
 
   // 获取角色详情（包含完整权限信息）
   async findByIdWithPermissions(id: string): Promise<RoleDocument> {

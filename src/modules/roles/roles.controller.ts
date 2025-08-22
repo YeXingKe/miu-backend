@@ -7,6 +7,7 @@ import { PermissionsEnum } from 'src/common/enums/permissions.enum'
 import { CreateRoleDto } from './dto/create-role.dto'
 import { UpdateRoleDto } from './dto/update-role.dto'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
+import { PaginationFilterDto } from '@/common/dto/pagination-filter.dto'
 
 @ApiTags('Roles')
 @Controller('roles')
@@ -22,12 +23,11 @@ export class RolesController {
     return this.roleService.create(dto)
   }
 
-  //   // 获取所有角色（分页）
-  //   @Get('page')
-  //   @RequirePermissions(PermissionsEnum.ROLE_READ)
-  //   async findAll(@Query('page') page = 1, @Query('limit') limit = 10, @Query('search') search?: string) {
-  //     return this.roleService.paginate({ page, limit, search })
-  //   }
+  @Post('getRoles')
+  @ApiOperation({ summary: '获取所有角色' })
+  findAll(@Body() paginationFilterDto: PaginationFilterDto) {
+    return this.roleService.findAll(paginationFilterDto)
+  }
 
   // 获取角色详情（含权限）
   @Get(':id')
