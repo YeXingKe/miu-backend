@@ -7,16 +7,8 @@ import { RoleService } from '../roles/roles.service'
 import { PermissionsEnum } from '@/common/enums/permissions.enum'
 import { UserRole } from './schemas/user-role.schema'
 import { PaginationFilterDto } from '@/common/dto/pagination-filter.dto'
+import { PaginationResponse } from '@/common/interface'
 
-export interface PaginationResponse<T> {
-  data: T[]
-  meta: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
-}
 /**
  * 	用户管理、角色分配、权限校验
  */

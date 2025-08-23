@@ -7,6 +7,7 @@ import { MenusService } from './menus.service'
 import { UpdateMenuDto } from './dto/update-menu.dto'
 import { CreateMenuDto } from './dto/create-menu.dto'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
+import { PaginationFilterDto } from '@/common/dto/pagination-filter.dto'
 
 @ApiTags('Menus')
 @Controller('menus')
@@ -20,6 +21,12 @@ export class MenusController {
   @ApiOperation({ summary: '创建菜单项' })
   async create(@Body() dto: CreateMenuDto) {
     return this.menusService.create(dto)
+  }
+
+  @Post('getMenus')
+  @ApiOperation({ summary: '获取所有用户' })
+  findAll(@Body() paginationFilterDto: PaginationFilterDto) {
+    return this.menusService.findAll(paginationFilterDto)
   }
 
   // 获取完整菜单树（管理员用）

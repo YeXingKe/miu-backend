@@ -6,6 +6,8 @@ import { RoleService } from '../roles/roles.service'
 import { CreateMenuDto } from './dto/create-menu.dto'
 import { UpdateMenuDto } from './dto/update-menu.dto'
 import { MenuDto } from './dto/menu.dto'
+import { PaginationFilterDto } from '@/common/dto/pagination-filter.dto'
+import { PaginationResponse } from '@/common/interface'
 
 @Injectable()
 export class MenusService {
@@ -121,5 +123,47 @@ export class MenusService {
       .exec()
 
     return { deleted: !!result }
+  }
+
+  async findAll(paginationFilterDto: PaginationFilterDto): Promise<PaginationResponse<Menu>> {
+    // 查出 users 集合里所有用户，**并把 password 字段排除掉，返回纯数组
+    // .exec() → 把 Query 对象真正发出去并返回 Promise，可 await
+    const { page, limit, search, sortBy, sortOrder, isActive } = paginationFilterDto
+    const skip = (page - 1) * limit
+
+    // 构建查询条件
+    const query: any = {}
+
+    if (search) {
+      query.$or = [{ userName: { $regex: search, $options: 'i' } }, { email: { $regex: search, $options: 'i' } }]
+    }
+
+    if (isActive !== undefined) {
+      query.isActive = isActive
+    }
+
+    // 构建排序条件
+    const sort: any = {}
+    sort[sortBy as string] = sortOrder?.toLowerCase() === 'desc' ? -1 : 1
+
+    // 执行查询
+    const [data, total] = await Promise.all([
+      this.menuModel.find(query).sort(sort).skip(skip).limit(limit).select('-password').exec(),
+      this.menuModel.countDocuments(query).exec()
+    ])
+
+    // 计算总页数
+    const totalPages = Math.ceil(total / limit)
+
+    // 返回格式化响应
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages
+      }
+    }
   }
 }

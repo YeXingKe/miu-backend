@@ -4,8 +4,7 @@ import { Model } from 'mongoose'
 import { UpdateRoleDto } from './dto/update-role.dto'
 import { Role, RoleDocument } from './schemas/roles.schemas'
 import { PaginationFilterDto } from '@/common/dto/pagination-filter.dto'
-import { PaginationResponse } from '../users/users.service'
-// import type { PaginateModel } from 'mongoose-paginate-v2' // 关键修改
+import { PaginationResponse } from '@/common/interface'
 
 @Injectable()
 export class RoleService {
@@ -65,7 +64,7 @@ export class RoleService {
     const query: any = {}
 
     if (search) {
-      query.$or = [{ name: { $regex: search, $options: 'i' } }, { code: { $regex: search, $options: 'i' } }]
+      query.$or = [{ title: { $regex: search, $options: 'i' } }, { path: { $regex: search, $options: 'i' } }]
     }
 
     if (isActive !== undefined) {
