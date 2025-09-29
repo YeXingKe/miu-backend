@@ -16,11 +16,11 @@ export class PaginationFilterDto extends PaginationDto {
   @ApiProperty({
     description: '排序字段',
     required: false,
-    example: 'createdAt'
+    example: 'order'
   })
   @IsOptional()
   @IsString()
-  sortBy?: string = 'createdAt'
+  sortBy?: string = 'order'
 
   @ApiProperty({
     description: '排序方向',
