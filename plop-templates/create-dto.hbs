@@ -1,0 +1,29 @@
+// plop-templates/create-dto.hbs
+{{#if generateSwagger}}
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+{{/if}}
+import { IsString, IsBoolean, IsOptional, MinLength, IsNotEmpty } from 'class-validator';
+
+export class Create{{dtoName}} {
+  {{#if generateSwagger}}
+  @ApiProperty({ description: 'Name of the {{camelSingular moduleName}}', example: 'Example {{pascalSingular moduleName}}' })
+  {{/if}}
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(1)
+  name: string;
+
+  {{#if generateSwagger}}
+  @ApiPropertyOptional({ description: 'Description of the {{camelSingular moduleName}}', example: 'This is an example description' })
+  {{/if}}
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  {{#if generateSwagger}}
+  @ApiPropertyOptional({ description: 'Whether the {{camelSingular moduleName}} is active', example: true })
+  {{/if}}
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+}

@@ -1,0 +1,5 @@
+// plop-templates/update-dto.hbs
+import { PartialType } from '@nestjs/swagger';
+import { Create{{dtoName}} } from './create-{{kebabCase moduleName}}.dto';
+
+export class Update{{dtoName}} extends PartialType(Create{{dtoName}}) {}

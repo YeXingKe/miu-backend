@@ -25,11 +25,12 @@
     "noFallthroughCasesInSwitch": false,
     "paths": {
       "mongoose": ["node_modules/@types/mongoose"],
-      "@/*": ["src/*"]        // 把 @ 映射到 src
+      "@/*": ["src/*"] // 把 @ 映射到 src
     }
   },
   "include": [
     "src/**/*",
+    "plopfile.js",
     "init-db.js" // 把该文件显式加进来
   ]
 }

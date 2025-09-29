@@ -1,0 +1,100 @@
+// plop-templates/controller.hbs
+{{#if generateSwagger}}
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
+{{/if}}
+import { 
+  Controller, 
+  Get, 
+  Post, 
+  Body, 
+  Put, 
+  Param, 
+  Delete, 
+  Query,
+  HttpStatus,
+  ParseIntPipe,
+  DefaultValuePipe 
+} from '@nestjs/common';
+import { {{serviceName}} } from './{{kebabCase moduleName}}.service';
+import { Create{{dtoName}} } from './dto/create-{{kebabCase moduleName}}.dto';
+import { Update{{dtoName}} } from './dto/update-{{kebabCase moduleName}}.dto';
+
+{{#if generateSwagger}}
+@ApiTags('{{pascalPlural moduleName}}')
+{{/if}}
+@Controller('{{kebabPlural moduleName}}')
+export class {{controllerName}} {
+  constructor(private readonly {{camelPlural moduleName}}Service: {{serviceName}}) {}
+
+  {{#if generateCrud}}
+  @Get()
+  {{#if generateSwagger}}
+  @ApiOperation({ summary: 'Get all {{camelPlural moduleName}}' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
+  @ApiQuery({ name: 'search', required: false, type: String, description: 'Search term' })
+  @ApiResponse({ status: 200, description: 'List of {{camelPlural moduleName}} retrieved successfully' })
+  {{/if}}
+  async findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Query('search') search: string,
+  ) {
+    return this.{{camelPlural moduleName}}Service.findAll({ page, limit, search });
+  }
+
+  @Get(':id')
+  {{#if generateSwagger}}
+  @ApiOperation({ summary: 'Get a {{camelSingular moduleName}} by ID' })
+  @ApiParam({ name: 'id', description: '{{pascalSingular moduleName}} ID' })
+  @ApiResponse({ status: 200, description: '{{pascalSingular moduleName}} retrieved successfully' })
+  @ApiResponse({ status: 404, description: '{{pascalSingular moduleName}} not found' })
+  {{/if}}
+  async findOne(@Param('id') id: string) {
+    return this.{{camelPlural moduleName}}Service.findOne(id);
+  }
+
+  @Post()
+  {{#if generateSwagger}}
+  @ApiOperation({ summary: 'Create a new {{camelSingular moduleName}}' })
+  @ApiBody({ type: Create{{dtoName}} })
+  @ApiResponse({ status: 201, description: '{{pascalSingular moduleName}} created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  {{/if}}
+  async create(@Body() create{{pascalSingular moduleName}}Dto: Create{{dtoName}}) {
+    return this.{{camelPlural moduleName}}Service.create(create{{pascalSingular moduleName}}Dto);
+  }
+
+  @Put(':id')
+  {{#if generateSwagger}}
+  @ApiOperation({ summary: 'Update a {{camelSingular moduleName}}' })
+  @ApiParam({ name: 'id', description: '{{pascalSingular moduleName}} ID' })
+  @ApiBody({ type: Update{{dtoName}} })
+  @ApiResponse({ status: 200, description: '{{pascalSingular moduleName}} updated successfully' })
+  @ApiResponse({ status: 404, description: '{{pascalSingular moduleName}} not found' })
+  {{/if}}
+  async update(
+    @Param('id') id: string,
+    @Body() update{{pascalSingular moduleName}}Dto: Update{{dtoName}},
+  ) {
+    return this.{{camelPlural moduleName}}Service.update(id, update{{pascalSingular moduleName}}Dto);
+  }
+
+  @Delete(':id')
+  {{#if generateSwagger}}
+  @ApiOperation({ summary: 'Delete a {{camelSingular moduleName}}' })
+  @ApiParam({ name: 'id', description: '{{pascalSingular moduleName}} ID' })
+  @ApiResponse({ status: 200, description: '{{pascalSingular moduleName}} deleted successfully' })
+  @ApiResponse({ status: 404, description: '{{pascalSingular moduleName}} not found' })
+  {{/if}}
+  async remove(@Param('id') id: string) {
+    return this.{{camelPlural moduleName}}Service.remove(id);
+  }
+  {{else}}
+  // Add your custom endpoints here
+  @Get()
+  async getCustom() {
+    return { message: 'Custom endpoint' };
+  }
+  {{/if}}
+}

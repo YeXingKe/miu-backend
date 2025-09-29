@@ -1,0 +1,18 @@
+// plop-templates/module.hbs
+import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { {{controllerName}} } from './{{kebabCase moduleName}}.controller';
+import { {{serviceName}} } from './{{kebabCase moduleName}}.service';
+import { {{schemaName}}, {{schemaName}}Schema } from './schemas/{{kebabCase moduleName}}.schema';
+
+@Module({
+  imports: [
+    MongooseModule.forFeature([
+      { name: {{schemaName}}.name, schema: {{schemaName}}Schema },
+    ]),
+  ],
+  controllers: [{{controllerName}}],
+  providers: [{{serviceName}}],
+  exports: [{{serviceName}}],
+})
+export class {{moduleName}}Module {}

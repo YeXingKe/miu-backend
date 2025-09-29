@@ -1,0 +1,84 @@
+// plop-templates/schema.hbs
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
+{{#if generateSwagger}}
+import { ApiProperty } from '@nestjs/swagger';
+{{/if}}
+{{#if addSoftDelete}}
+import { SoftDeleteModel } from 'mongoose-delete';
+{{/if}}
+
+export type {{pascalSingular moduleName}}Document = {{pascalSingular moduleName}} & Document;
+
+@Schema({
+  {{#if addTimestamps}}
+  timestamps: true,
+  {{/if}}
+  toJSON: {
+    virtuals: true,
+    transform: (doc, ret) => {
+      ret.id = ret._id;
+      delete ret._id;
+      delete ret.__v;
+      {{#if addSoftDelete}}
+      delete ret.deleted;
+      {{/if}}
+      return ret;
+    },
+  },
+})
+export class {{schemaName}} {
+  {{#if generateSwagger}}
+  @ApiProperty({ description: 'The unique identifier', example: '507f1f77bcf86cd799439011' })
+  {{/if}}
+  id: string;
+
+  {{#if generateSwagger}}
+  @ApiProperty({ description: 'Name of the {{camelSingular moduleName}}', example: 'Example {{pascalSingular moduleName}}' })
+  {{/if}}
+  @Prop({ required: true, trim: true })
+  name: string;
+
+  {{#if generateSwagger}}
+  @ApiProperty({ description: 'Description of the {{camelSingular moduleName}}', example: 'This is an example description', required: false })
+  {{/if}}
+  @Prop({ trim: true })
+  description?: string;
+
+  {{#if generateSwagger}}
+  @ApiProperty({ description: 'Whether the {{camelSingular moduleName}} is active', example: true })
+  {{/if}}
+  @Prop({ default: true })
+  isActive: boolean;
+
+  {{#if addTimestamps}}
+  {{#if generateSwagger}}
+  @ApiProperty({ description: 'Creation date', example: '2023-01-01T00:00:00.000Z' })
+  {{/if}}
+  createdAt: Date;
+
+  {{#if generateSwagger}}
+  @ApiProperty({ description: 'Last update date', example: '2023-01-01T00:00:00.000Z' })
+  {{/if}}
+  updatedAt: Date;
+  {{/if}}
+
+  {{#if addSoftDelete}}
+  @Prop({ default: false })
+  deleted: boolean;
+
+  @Prop()
+  deletedAt?: Date;
+  {{/if}}
+}
+
+export const {{schemaName}}Schema = SchemaFactory.createForClass({{schemaName}});
+
+// Indexes
+{{schemaName}}Schema.index({ name: 1 });
+{{#if addTimestamps}}
+{{schemaName}}Schema.index({ createdAt: -1 });
+{{/if}}
+{{#if addSoftDelete}}
+{{schemaName}}Schema.index({ deleted: 1 });
+{{/if}}

@@ -1,0 +1,93 @@
+// plop-templates/service.hbs
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { {{schemaName}}, {{schemaName}}Document } from './schemas/{{kebabCase moduleName}}.schema';
+import { Create{{dtoName}} } from './dto/create-{{kebabCase moduleName}}.dto';
+import { Update{{dtoName}} } from './dto/update-{{kebabCase moduleName}}.dto';
+
+@Injectable()
+export class {{serviceName}} {
+  constructor(
+    @InjectModel({{schemaName}}.name) 
+    private readonly {{camelSingular moduleName}}Model: Model<{{schemaName}}Document>,
+  ) {}
+
+  {{#if generateCrud}}
+  async findAll(params: { page?: number; limit?: number; search?: string }): Promise<{ data: {{schemaName}}[]; total: number; page: number; limit: number }> {
+    const { page = 1, limit = 10, search } = params;
+    const skip = (page - 1) * limit;
+
+    const filter: any = {};
+    {{#if addSoftDelete}}
+    filter.deleted = { $ne: true };
+    {{/if}}
+    
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const [data, total] = await Promise.all([
+      this.{{camelSingular moduleName}}Model
+        .find(filter)
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .exec(),
+      this.{{camelSingular moduleName}}Model.countDocuments(filter),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+    };
+  }
+
+  async findOne(id: string): Promise<{{schemaName}}> {
+    const {{camelSingular moduleName}} = await this.{{camelSingular moduleName}}Model.findById(id).exec();
+    if (!{{camelSingular moduleName}}) {
+      throw new NotFoundException(`{{pascalSingular moduleName}} with ID \${id} not found`);
+    }
+    return {{camelSingular moduleName}};
+  }
+
+  async create(create{{pascalSingular moduleName}}Dto: Create{{dtoName}}): Promise<{{schemaName}}> {
+    const created{{pascalSingular moduleName}} = new this.{{camelSingular moduleName}}Model(create{{pascalSingular moduleName}}Dto);
+    return created{{pascalSingular moduleName}}.save();
+  }
+
+  async update(id: string, update{{pascalSingular moduleName}}Dto: Update{{dtoName}}): Promise<{{schemaName}}> {
+    const existing{{pascalSingular moduleName}} = await this.{{camelSingular moduleName}}Model
+      .findByIdAndUpdate(id, update{{pascalSingular moduleName}}Dto, { new: true })
+      .exec();
+    
+    if (!existing{{pascalSingular moduleName}}) {
+      throw new NotFoundException(`{{pascalSingular moduleName}} with ID \${id} not found`);
+    }
+    
+    return existing{{pascalSingular moduleName}};
+  }
+
+  async remove(id: string): Promise<void> {
+    {{#if addSoftDelete}}
+    const result = await this.{{camelSingular moduleName}}Model.findByIdAndUpdate(
+      id, 
+      { deleted: true, deletedAt: new Date() },
+      { new: true }
+    ).exec();
+    {{else}}
+    const result = await this.{{camelSingular moduleName}}Model.findByIdAndDelete(id).exec();
+    {{/if}}
+    if (!result) {
+      throw new NotFoundException(`{{pascalSingular moduleName}} with ID \${id} not found`);
+    }
+  }
+  {{else}}
+  // Add your custom service methods here
+  {{/if}}
+}
