@@ -17,6 +17,15 @@ export class AuthService {
     private configService: ConfigService
   ) {}
 
+  /**
+   *
+   * @param userId
+   * @param ip
+   */
+  async updateLastLogin(userId: string, ip: string): Promise<void> {
+    return this.usersService.updateLastLogin(userId, ip)
+  }
+
   async validateUser(userName: string, pwd: string): Promise<any> {
     const user = await this.usersService.findByUserName(userName)
     if (!user) {

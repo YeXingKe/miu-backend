@@ -37,6 +37,7 @@ export class MenusService {
 
   async getFullMenuTree(): Promise<Menu[]> {
     const menus = await this.menuModel.find({ isDeleted: { $ne: true } }).sort({ order: 1 })
+    console.log('menus===', menus)
     return this.buildTree(menus)
   }
   // 根据角色获取动态菜单树
@@ -66,7 +67,7 @@ export class MenusService {
         title: menu.name,
         icon: menu.icon,
         hidden: !menu.visible,
-        roles: menu.roles, // 假设已经转换为角色标识
+        roles: menu.permissions, // 假设已经转换为角色标识
         affix: menu.affix,
         noCache: menu.noCache
       },

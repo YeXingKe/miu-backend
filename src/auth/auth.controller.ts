@@ -3,7 +3,6 @@ import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { AuthService } from './auth.service'
 import { LoginDto } from './dto/login.dto'
 import { Public } from './decorators/public.decorator'
-import { AuthGuard } from '@nestjs/passport'
 import { RegisterDto } from './dto/register.dto'
 
 @ApiTags('Auth')

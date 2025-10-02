@@ -32,7 +32,7 @@ export class MenusController {
   // 获取完整菜单树（管理员用）
   @Get('getMenusTree')
   @ApiOperation({ summary: '获取完整菜单树（管理员用）' })
-  @RequirePermissions(PermissionsEnum.MENU_READ)
+  // @RequirePermissions(PermissionsEnum.MENU_READ)
   async getFullMenuTree() {
     return this.menusService.getFullMenuTree()
   }

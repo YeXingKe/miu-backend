@@ -1,10 +1,9 @@
 import { PermissionsEnum } from '@/common/enums/permissions.enum'
-import { RoleDocument } from '@/modules/roles/schemas/roles.schemas'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { ApiProperty } from '@nestjs/swagger'
 import { Document, Types } from 'mongoose'
 
-@Schema({ timestamps: true })
+@Schema({ collection: 'menus', timestamps: true })
 export class Menu extends Document {
   declare _id: Types.ObjectId
 
@@ -80,16 +79,9 @@ export class Menu extends Document {
   @ApiProperty({ example: '', description: '是否显示菜单' })
   visible: boolean // 是否显示菜单
 
-  @Prop({
-    type: [Types.ObjectId],
-    ref: 'Role',
-    default: []
-  })
-  @ApiProperty({ example: '', description: '可访问的角色ID数组' })
-  roleIds: Types.ObjectId[] // 可访问的角色ID数组
-
-  @ApiProperty({ example: '', description: '角色权限字符串' })
-  roles: PermissionsEnum[]
+  @Prop({ type: [String], default: [] })
+  @ApiProperty({ example: '', description: '访问该菜单需要的权限' })
+  permissions: string[] // 访问该菜单需要的权限
 
   @Prop({
     type: String,
@@ -127,3 +119,9 @@ export class Menu extends Document {
 
 export const MenuSchema = SchemaFactory.createForClass(Menu)
 // export type MenurDocument = Menu & Document
+
+// 创建索引优化查询性能
+MenuSchema.index({ parentId: 1 })
+MenuSchema.index({ type: 1 })
+// MenuSchema.index({ permissionKey: 1 }, { unique: true, sparse: true })
+MenuSchema.index({ sort: 1 })

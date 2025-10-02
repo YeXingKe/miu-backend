@@ -9,13 +9,17 @@ import { RolesGuard } from 'src/auth/guards/roles.guard'
 import { UserRole } from 'src/common/enums/user-role.enum'
 import { PaginationDto } from '@/common/dto/pagination.dto'
 import { PaginationFilterDto } from '@/common/dto/pagination-filter.dto'
+import { RoleService } from '../roles/roles.service'
 
 @ApiBearerAuth()
 @ApiTags('Users')
 @Controller('users') // 指定路由前缀
 @UseGuards(JwtAuthGuard, RolesGuard) // JwtAuthGuard自定义的守卫，继承自 AuthGuard('jwt'), 触发JwtStrategy
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly roleService: RoleService
+  ) {}
 
   @Post('create')
   @ApiOperation({ summary: '创建用户', description: '需要管理员权限' })
@@ -57,5 +61,32 @@ export class UsersController {
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   async deleteUsers(@Body() ids: string[]) {
     return await this.usersService.deleteUsers(ids)
+  }
+
+  @Post('/assignRole')
+  @ApiOperation({ summary: '用户分配角色' })
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  async assignRolesToUser(@Body() assignRolesDto: { roleIds: string[]; userId: string }) {
+    const user = await this.usersService.assignRolesToUser(assignRolesDto.userId, assignRolesDto.roleIds)
+    return {
+      code: 200,
+      message: '角色分配成功',
+      data: {
+        userId: user._id,
+        userName: user.userName,
+        roles: user.roles
+      }
+    }
+  }
+
+  @Post('/getPermissions')
+  @ApiOperation({ summary: '获取用户的所有权限' })
+  async getUserPermissions(@Body() req: { userId: string }) {
+    const permissions = await this.usersService.getUserPermissions(req.userId)
+    return {
+      code: 200,
+      message: '获取用户权限成功',
+      data: permissions
+    }
   }
 }

@@ -30,16 +30,16 @@ module.exports = function (plop) {
       {
         type: 'input',
         name: 'moduleName',
-        message: '请输入模块名称 (例如: user, product, category):',
-        validate: value => {
-          if (!value) {
-            return '模块名称不能为空'
-          }
-          if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(value)) {
-            return '模块名称只能包含字母和数字，且以字母开头'
-          }
-          return true
-        }
+        message: '请输入模块名称 (例如: user, product, category):'
+        // validate: value => {
+        //   if (!value) {
+        //     return '模块名称不能为空'
+        //   }
+        //   if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(value)) {
+        //     return '模块名称只能包含字母和数字，且以字母开头'
+        //   }
+        //   return true
+        // }
       },
       {
         type: 'input',

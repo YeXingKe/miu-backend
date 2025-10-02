@@ -45,12 +45,24 @@ export class RolesController {
     return this.roleService.update(id, dto)
   }
 
-  // 为角色分配权限（核心RBAC操作）
-  @Put(':id/permissions')
-  @RequirePermissions(PermissionsEnum.ROLE_MANAGE_PERMISSIONS)
-  @ApiOperation({ summary: '为角色分配权限（核心RBAC操作）' })
-  async assignPermissions(@Param('id') id: string, @Body() { permissions }: { permissions: string[] }) {
-    return this.roleService.assignPermissions(id, permissions)
+  @Post('/assignMenus')
+  @ApiOperation({ summary: '为角色分配菜单权限' })
+  async assignMenusToRole(@Body() assignMenusDto: { roleId: string; menuId: string; permissions: string[] }) {
+    const role = await this.roleService.setRoleMenuPermissions(
+      assignMenusDto.roleId,
+      assignMenusDto.menuId,
+      assignMenusDto.permissions
+    )
+    console.log('assignMenusToRole==', role)
+    return {
+      code: 200,
+      message: '菜单权限分配成功',
+      data: {
+        roleId: role._id,
+        roleName: role.name,
+        menus: role.menus
+      }
+    }
   }
 
   // 删除角色

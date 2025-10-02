@@ -1,13 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { CreateUserDto } from './dto/create-user.dto'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
-import { User, UserDocument } from './schemas/user.schema'
+import { User } from './schemas/user.schema'
 import { RoleService } from '../roles/roles.service'
-import { PermissionsEnum } from '@/common/enums/permissions.enum'
-import { UserRole } from './schemas/user-role.schema'
 import { PaginationFilterDto } from '@/common/dto/pagination-filter.dto'
 import { PaginationResponse } from '@/common/interface'
+import { Role } from '../roles/schemas/roles.schemas'
+import { UserRole } from '../roles/schemas/user-role.schema'
+import { PermissionCheckResult } from './dto/check-permission-response.dto'
 
 /**
  * 	用户管理、角色分配、权限校验
@@ -17,7 +18,8 @@ import { PaginationResponse } from '@/common/interface'
 export class UsersService {
   // 服务层注入模型并写入一条数据（触发“自动建”）
   constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Role.name) private roleModel: Model<Role>,
     @InjectModel(UserRole.name) private userRoleModel: Model<UserRole>,
     private roleService: RoleService
   ) {}
@@ -27,8 +29,8 @@ export class UsersService {
       ...createUserDto
     })
     await this.userRoleModel.create({
-      user: createdUser._id,
-      role: createdUser.roleIds
+      userId: createdUser._id,
+      roleId: createdUser.roles
     })
     return createdUser.save()
   }
@@ -78,7 +80,19 @@ export class UsersService {
       }
     }
   }
-
+  /**
+   * 更新最后登录时间
+   * @param userId
+   * @param ip
+   */
+  async updateLastLogin(userId: string, ip: string): Promise<void> {
+    await this.userModel
+      .findByIdAndUpdate(userId, {
+        lastLoginAt: new Date(),
+        lastLoginIp: ip
+      })
+      .exec()
+  }
   /**
    * 通过用户id查询记录
    * @param userName
@@ -192,19 +206,117 @@ export class UsersService {
     return updatedUser as User // 类型断言
   }
 
-  // 获取用户完整权限列表（合并所有角色的权限）
-  async getUserPermissions(userId: string): Promise<string[]> {
-    // populate('roles')将 ObjectId 引用替换为完整的关联文档
-    const user = await this.userModel.findById(userId).populate<{ roles: { permissions: string[] }[] }>('roles')
-    if (!user) throw new Error('User not found')
+  /**
+   * 为用户分配角色
+   */
+  async assignRolesToUser(userId: string, roleIds: string[]): Promise<User> {
+    // 验证用户是否存在
+    const user = await this.userModel.findById(userId)
+    if (!user) {
+      throw new NotFoundException('用户不存在')
+    }
 
-    return user.roles.flatMap(role => role.permissions)
+    // 验证所有角色ID是否有效
+    const validRoles = await this.roleModel.find({
+      _id: { $in: roleIds.map(id => new Types.ObjectId(id)) }
+    })
+
+    if (validRoles.length !== roleIds.length) {
+      const invalidIds = roleIds.filter(id => !validRoles.some(role => role._id.toString() === id))
+      throw new BadRequestException(`以下角色ID无效: ${invalidIds.join(', ')}`)
+    }
+
+    // 更新用户的角色（直接覆盖）
+    user.roles = roleIds.map(id => new Types.ObjectId(id))
+    return await user.save()
   }
 
-  // 验证用户是否有特定权限
-  async hasPermission(userId: string, requiredPermission: string): Promise<boolean> {
-    const permissions = await this.getUserPermissions(userId)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    return permissions.includes(requiredPermission) || permissions.some(p => p === PermissionsEnum.ALL_MANGE) // 超级管理员通配符
+  /**
+   * 检查用户是否拥有特定权限
+   */
+  async checkUserPermission(userId: string, permissionKey: string): Promise<boolean> {
+    const userPermissions = await this.getUserPermissions(userId)
+    return userPermissions.includes(permissionKey)
+  }
+
+  /**
+   * 批量检查用户权限
+   */
+  async checkUserPermissions(userId: string, permissionKeys: string[]): Promise<PermissionCheckResult[]> {
+    // 获取用户所有权限
+    const userPermissions = await this.getUserPermissions(userId)
+
+    // 检查每个权限
+    return permissionKeys.map(permission => ({
+      permission,
+      hasPermission: userPermissions.includes(permission)
+    }))
+  }
+
+  /**
+   * 获取用户的角色ID列表
+   */
+  async getUserRoleIds(userId: string): Promise<string[]> {
+    const userRoles = await this.userRoleModel
+      .find({
+        userId: new Types.ObjectId(userId),
+        isActive: true
+      })
+      .exec()
+
+    return userRoles.map(userRole => userRole.roleId.toString())
+  }
+
+  /**
+   * 获取用户详情（包含角色信息）
+   */
+  async findUserWithRoles(userId: string): Promise<any> {
+    const user = await this.userModel.findById(userId).populate('roles').exec()
+
+    if (!user) {
+      throw new NotFoundException('用户不存在')
+    }
+
+    return {
+      id: user._id,
+      roles: user.roles,
+      lastLoginAt: user.lastLoginAt
+    }
+  }
+
+  /**
+   * 获取用户的所有权限
+   */
+  async getUserPermissions(userId: string): Promise<string[]> {
+    const user = await this.userModel
+      .findById(userId)
+      .populate({
+        path: 'roles',
+        match: { status: 1 },
+        populate: {
+          path: 'menus',
+          match: {
+            status: 1,
+            permissionKey: { $exists: true, $ne: null }
+          }
+        }
+      })
+      .exec()
+
+    if (!user) {
+      throw new NotFoundException('用户不存在')
+    }
+
+    const permissions = new Set<string>()
+
+    ;(user.roles as any[]).forEach(role => {
+      ;(role.menus as any[]).forEach(menu => {
+        if (menu.permissions) {
+          permissions.add(menu.permissions)
+        }
+      })
+    })
+
+    return Array.from(permissions)
   }
 }
